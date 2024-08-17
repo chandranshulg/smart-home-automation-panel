@@ -28,7 +28,17 @@
         }
 
         .device {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 22px;
+            color: #333;
         }
 
         button {
@@ -39,6 +49,7 @@
             color: #fff;
             cursor: pointer;
             margin-right: 10px;
+            margin-top: 5px;
         }
 
         button:hover {
@@ -48,6 +59,38 @@
         p {
             font-size: 18px;
             color: #555;
+            margin: 5px 0;
+        }
+
+        .control-panel {
+            margin: 10px 0;
+        }
+
+        .slider {
+            width: 100%;
+        }
+
+        .input-group {
+            margin: 10px 0;
+        }
+
+        .input-group input[type="range"] {
+            width: 100%;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .history {
+            border-top: 1px solid #ddd;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .history p {
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -57,40 +100,97 @@
         <div class="device" id="lights">
             <h2>Lights</h2>
             <button onclick="toggleDevice('lights')">Toggle Lights</button>
+            <div class="control-panel">
+                <div class="input-group">
+                    <label for="brightness">Brightness:</label>
+                    <input type="range" id="brightness" class="slider" min="0" max="100" value="50" oninput="updateBrightness()">
+                    <p id="brightness-value">50%</p>
+                </div>
+                <div class="input-group">
+                    <label for="color">Color:</label>
+                    <input type="color" id="color" value="#ffffff" onchange="updateColor()">
+                </div>
+            </div>
             <p id="lights-status">Off</p>
         </div>
         <div class="device" id="thermostat">
             <h2>Thermostat</h2>
             <button onclick="increaseTemperature()">Increase Temperature</button>
             <button onclick="decreaseTemperature()">Decrease Temperature</button>
+            <div class="input-group">
+                <label for="schedule-time">Set Temperature Schedule (°C):</label>
+                <input type="number" id="schedule-time" min="15" max="30" value="22">
+                <button onclick="setSchedule()">Set Schedule</button>
+            </div>
             <p id="thermostat-status">Temperature: 22°C</p>
         </div>
         <div class="device" id="security">
             <h2>Security</h2>
             <button onclick="toggleDevice('security')">Toggle Security System</button>
             <p id="security-status">Disarmed</p>
+            <div class="history" id="security-history">
+                <h3>Security History</h3>
+                <p id="security-history-list">No history available.</p>
+            </div>
         </div>
     </div>
     <script>
+        const deviceHistory = {
+            lights: [],
+            thermostat: [],
+            security: []
+        };
+
         function toggleDevice(deviceId) {
             const statusElement = document.getElementById(deviceId + '-status');
             if (statusElement.innerText === 'Off') {
                 statusElement.innerText = 'On';
+                logHistory(deviceId, 'On');
             } else {
                 statusElement.innerText = 'Off';
+                logHistory(deviceId, 'Off');
             }
+        }
+
+        function updateBrightness() {
+            const brightness = document.getElementById('brightness').value;
+            document.getElementById('brightness-value').innerText = `${brightness}%`;
+            // Add your brightness change logic here
+        }
+
+        function updateColor() {
+            const color = document.getElementById('color').value;
+            document.body.style.backgroundColor = color;
+            // Add your color change logic here
         }
 
         function increaseTemperature() {
             const tempElement = document.getElementById('thermostat-status');
             let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
             tempElement.innerText = `Temperature: ${currentTemp + 1}°C`;
+            logHistory('thermostat', `Temperature set to ${currentTemp + 1}°C`);
         }
 
         function decreaseTemperature() {
             const tempElement = document.getElementById('thermostat-status');
             let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
             tempElement.innerText = `Temperature: ${currentTemp - 1}°C`;
+            logHistory('thermostat', `Temperature set to ${currentTemp - 1}°C`);
+        }
+
+        function setSchedule() {
+            const scheduleTemp = document.getElementById('schedule-time').value;
+            const tempElement = document.getElementById('thermostat-status');
+            tempElement.innerText = `Temperature scheduled to ${scheduleTemp}°C`;
+            logHistory('thermostat', `Schedule set to ${scheduleTemp}°C`);
+        }
+
+        function logHistory(deviceId, action) {
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+            const historyElement = document.getElementById(deviceId + '-history-list');
+            deviceHistory[deviceId].push(`${time}: ${action}`);
+            historyElement.innerHTML = deviceHistory[deviceId].join('<br>');
         }
     </script>
 </body>
