@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Automation Control Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .device {
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        p {
+            font-size: 18px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Home Automation</h1>
+        <div class="device" id="lights">
+            <h2>Lights</h2>
+            <button onclick="toggleDevice('lights')">Toggle Lights</button>
+            <p id="lights-status">Off</p>
+        </div>
+        <div class="device" id="thermostat">
+            <h2>Thermostat</h2>
+            <button onclick="increaseTemperature()">Increase Temperature</button>
+            <button onclick="decreaseTemperature()">Decrease Temperature</button>
+            <p id="thermostat-status">Temperature: 22°C</p>
+        </div>
+        <div class="device" id="security">
+            <h2>Security</h2>
+            <button onclick="toggleDevice('security')">Toggle Security System</button>
+            <p id="security-status">Disarmed</p>
+        </div>
+    </div>
+    <script>
+        function toggleDevice(deviceId) {
+            const statusElement = document.getElementById(deviceId + '-status');
+            if (statusElement.innerText === 'Off') {
+                statusElement.innerText = 'On';
+            } else {
+                statusElement.innerText = 'Off';
+            }
+        }
+
+        function increaseTemperature() {
+            const tempElement = document.getElementById('thermostat-status');
+            let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
+            tempElement.innerText = `Temperature: ${currentTemp + 1}°C`;
+        }
+
+        function decreaseTemperature() {
+            const tempElement = document.getElementById('thermostat-status');
+            let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
+            tempElement.innerText = `Temperature: ${currentTemp - 1}°C`;
+        }
+    </script>
+</body>
+</html>
