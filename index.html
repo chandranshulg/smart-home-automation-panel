@@ -29,7 +29,7 @@
 
         .device {
             margin-bottom: 30px;
-            padding: 10px;
+            padding: 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
             background: #fafafa;
@@ -56,18 +56,10 @@
             background-color: #0056b3;
         }
 
-        p {
+        p, input {
             font-size: 18px;
             color: #555;
             margin: 5px 0;
-        }
-
-        .control-panel {
-            margin: 10px 0;
-        }
-
-        .slider {
-            width: 100%;
         }
 
         .input-group {
@@ -78,31 +70,78 @@
             width: 100%;
         }
 
-        .input-group label {
+        .slider-label {
             display: block;
             margin-bottom: 5px;
         }
 
-        .history {
+        .history, .notifications {
             border-top: 1px solid #ddd;
             margin-top: 10px;
             padding-top: 10px;
         }
 
-        .history p {
+        .history p, .notifications p {
             margin: 5px 0;
+        }
+
+        #login-form {
+            max-width: 300px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        #login-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        #login-form button {
+            width: 100%;
+        }
+
+        #user-status {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        .chart {
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Smart Home Automation</h1>
-        <div class="device" id="lights">
-            <h2>Lights</h2>
-            <button onclick="toggleDevice('lights')">Toggle Lights</button>
-            <div class="control-panel">
+    <div id="login-container">
+        <form id="login-form" onsubmit="login(event)">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div id="main-container" style="display:none;">
+        <div id="user-status">Logged in as: <span id="current-user"></span> | <button onclick="logout()">Logout</button></div>
+
+        <div class="container">
+            <h1>Smart Home Automation</h1>
+
+            <div class="device" id="lights">
+                <h2>Lights</h2>
+                <button onclick="toggleDevice('lights')">Toggle Lights</button>
                 <div class="input-group">
-                    <label for="brightness">Brightness:</label>
+                    <label for="brightness" class="slider-label">Brightness:</label>
                     <input type="range" id="brightness" class="slider" min="0" max="100" value="50" oninput="updateBrightness()">
                     <p id="brightness-value">50%</p>
                 </div>
@@ -110,58 +149,102 @@
                     <label for="color">Color:</label>
                     <input type="color" id="color" value="#ffffff" onchange="updateColor()">
                 </div>
+                <p id="lights-status">Off</p>
+                <div class="history" id="lights-history">
+                    <h3>Lights History</h3>
+                    <p id="lights-history-list">No history available.</p>
+                </div>
+                <div class="chart" id="energy-chart">
+                    <h3>Energy Usage</h3>
+                    <canvas id="energyChart"></canvas>
+                </div>
             </div>
-            <p id="lights-status">Off</p>
-        </div>
-        <div class="device" id="thermostat">
-            <h2>Thermostat</h2>
-            <button onclick="increaseTemperature()">Increase Temperature</button>
-            <button onclick="decreaseTemperature()">Decrease Temperature</button>
-            <div class="input-group">
-                <label for="schedule-time">Set Temperature Schedule (°C):</label>
-                <input type="number" id="schedule-time" min="15" max="30" value="22">
-                <button onclick="setSchedule()">Set Schedule</button>
+
+            <div class="device" id="thermostat">
+                <h2>Thermostat</h2>
+                <button onclick="increaseTemperature()">Increase Temperature</button>
+                <button onclick="decreaseTemperature()">Decrease Temperature</button>
+                <div class="input-group">
+                    <label for="schedule-time">Set Temperature Schedule (°C):</label>
+                    <input type="number" id="schedule-time" min="15" max="30" value="22">
+                    <button onclick="setSchedule()">Set Schedule</button>
+                </div>
+                <p id="thermostat-status">Temperature: 22°C</p>
+                <div class="history" id="thermostat-history">
+                    <h3>Thermostat History</h3>
+                    <p id="thermostat-history-list">No history available.</p>
+                </div>
             </div>
-            <p id="thermostat-status">Temperature: 22°C</p>
-        </div>
-        <div class="device" id="security">
-            <h2>Security</h2>
-            <button onclick="toggleDevice('security')">Toggle Security System</button>
-            <p id="security-status">Disarmed</p>
-            <div class="history" id="security-history">
-                <h3>Security History</h3>
-                <p id="security-history-list">No history available.</p>
+
+            <div class="device" id="security">
+                <h2>Security</h2>
+                <button onclick="toggleDevice('security')">Toggle Security System</button>
+                <p id="security-status">Disarmed</p>
+                <div class="history" id="security-history">
+                    <h3>Security History</h3>
+                    <p id="security-history-list">No history available.</p>
+                </div>
+                <div class="notifications">
+                    <h3>Notifications</h3>
+                    <p id="notifications-list">No notifications.</p>
+                </div>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const deviceHistory = {
-            lights: [],
-            thermostat: [],
-            security: []
-        };
+        let loggedInUser = null;
+
+        function login(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Simulated authentication
+            if (username === 'admin' && password === 'password') {
+                loggedInUser = username;
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('main-container').style.display = 'block';
+                document.getElementById('current-user').innerText = loggedInUser;
+                document.getElementById('energyChart').getContext('2d');
+                renderEnergyChart();
+            } else {
+                alert('Invalid credentials');
+            }
+        }
+
+        function logout() {
+            loggedInUser = null;
+            document.getElementById('login-container').style.display = 'block';
+            document.getElementById('main-container').style.display = 'none';
+        }
 
         function toggleDevice(deviceId) {
             const statusElement = document.getElementById(deviceId + '-status');
             if (statusElement.innerText === 'Off') {
                 statusElement.innerText = 'On';
                 logHistory(deviceId, 'On');
+                sendAPIRequest(deviceId, 'ON');
             } else {
                 statusElement.innerText = 'Off';
                 logHistory(deviceId, 'Off');
+                sendAPIRequest(deviceId, 'OFF');
             }
         }
 
         function updateBrightness() {
             const brightness = document.getElementById('brightness').value;
             document.getElementById('brightness-value').innerText = `${brightness}%`;
-            // Add your brightness change logic here
+            // Simulate API request
+            sendAPIRequest('lights', `BRIGHTNESS:${brightness}`);
         }
 
         function updateColor() {
             const color = document.getElementById('color').value;
             document.body.style.backgroundColor = color;
-            // Add your color change logic here
+            // Simulate API request
+            sendAPIRequest('lights', `COLOR:${color}`);
         }
 
         function increaseTemperature() {
@@ -169,6 +252,7 @@
             let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
             tempElement.innerText = `Temperature: ${currentTemp + 1}°C`;
             logHistory('thermostat', `Temperature set to ${currentTemp + 1}°C`);
+            sendAPIRequest('thermostat', `TEMP:${currentTemp + 1}`);
         }
 
         function decreaseTemperature() {
@@ -176,6 +260,7 @@
             let currentTemp = parseInt(tempElement.innerText.split(': ')[1]);
             tempElement.innerText = `Temperature: ${currentTemp - 1}°C`;
             logHistory('thermostat', `Temperature set to ${currentTemp - 1}°C`);
+            sendAPIRequest('thermostat', `TEMP:${currentTemp - 1}`);
         }
 
         function setSchedule() {
@@ -183,14 +268,51 @@
             const tempElement = document.getElementById('thermostat-status');
             tempElement.innerText = `Temperature scheduled to ${scheduleTemp}°C`;
             logHistory('thermostat', `Schedule set to ${scheduleTemp}°C`);
+            sendAPIRequest('thermostat', `SCHEDULE:${scheduleTemp}`);
         }
 
         function logHistory(deviceId, action) {
             const now = new Date();
             const time = now.toLocaleTimeString();
             const historyElement = document.getElementById(deviceId + '-history-list');
-            deviceHistory[deviceId].push(`${time}: ${action}`);
-            historyElement.innerHTML = deviceHistory[deviceId].join('<br>');
+            const history = document.getElementById(deviceId + '-history');
+            const historyContent = `${time}: ${action}`;
+            if (historyElement.innerHTML === 'No history available.') {
+                historyElement.innerHTML = historyContent;
+            } else {
+                historyElement.innerHTML += `<br>${historyContent}`;
+            }
+        }
+
+        function sendAPIRequest(deviceId, action) {
+            console.log(`Sending API request to ${deviceId} with action: ${action}`);
+            // Simulate API request
+            setTimeout(() => {
+                const notifications = document.getElementById('notifications-list');
+                notifications.innerHTML = `API request to ${deviceId} with action: ${action}`;
+            }, 1000);
+        }
+
+        function renderEnergyChart() {
+            const ctx = document.getElementById('energyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lights', 'Thermostat'],
+                    datasets: [{
+                        label: 'Energy Usage (kWh)',
+                        data: [0, 0],
+                        backgroundColor: ['#007bff', '#28a745']
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         }
     </script>
 </body>
