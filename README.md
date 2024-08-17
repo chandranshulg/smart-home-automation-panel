@@ -17,6 +17,9 @@ You can view the live version of the Smart Home Automation Control Panel at:
 
 [Smart Home Automation Control Panel](https://chandranshulg.github.io/smart-home-automation-panel/)
 
+**username**: admin
+**Password**: password
+
 ## Repository
 
 The source code for this project is available on GitHub:
